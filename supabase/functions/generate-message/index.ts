@@ -1,20 +1,24 @@
 // Enables Supabase Edge Function runtime types
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-// Import from JSR (Deno-native registry)
 import { openai } from "npm:@ai-sdk/openai";
 import { streamText } from "npm:ai";
 
+// Dummy function to simulate saving to DB
+async function saveResponseToDB(responseText) {
+  // your DB saving logic here
+  console.log("Saving response to DB:", responseText);
+}
+
 Deno.serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, {
-      status: 204, // No content
+      status: 204,
       headers: {
-        "Access-Control-Allow-Origin": "*", // Or your specific frontend domain
+        "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400", // 24 hours
+        "Access-Control-Max-Age": "86400",
       },
     });
   }
@@ -33,14 +37,26 @@ Deno.serve(async (req) => {
   }
 
   const result = await streamText({
-    model: openai("gpt-4o"), // Or 'gpt-4-turbo', etc.
+    model: openai("gpt-4o-mini"),
     messages,
   });
 
-  // Add CORS headers to the response
+  // Convert stream result to a response for the client
   const response = await result.toDataStreamResponse();
   const newHeaders = new Headers(response.headers);
-  newHeaders.set("Access-Control-Allow-Origin", "*"); // Or your specific frontend domain
+  newHeaders.set("Access-Control-Allow-Origin", "*");
+
+  // Kick off a background task to save the response to your DB.
+  EdgeRuntime.waitUntil(
+    (async () => {
+      try {
+        const responseText = await result.text;
+        await saveResponseToDB(responseText);
+      } catch (err) {
+        console.error("Error saving to DB:", err);
+      }
+    })(),
+  );
 
   return new Response(response.body, {
     status: response.status,
