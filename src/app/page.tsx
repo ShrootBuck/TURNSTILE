@@ -10,7 +10,7 @@ export default function Chat() {
     <div className="flex flex-col w-full bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen rounded-lg shadow-lg">
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200">
         <h1 className="text-xl md:text-2xl font-semibold text-gray-800">
-          Chat Assistant
+          TURNSTILE
         </h1>
       </div>
 
