@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
   }
 
   const result = await streamText({
-    model: openai("gpt-4o-mini"),
+    model: openai("gpt-4.1-nano"),
     messages,
   });
 
