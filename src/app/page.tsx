@@ -1,11 +1,19 @@
+// /src/app/page.tsx
 "use client";
 
 import { useChat } from "@ai-sdk/react";
+import ReactMarkdown from "react-markdown"; // Import ReactMarkdown
+import remarkMath from "remark-math"; // Import remark-math
+import rehypeKatex from "rehype-katex"; // Import rehype-katex
+
+// You might need to import KaTeX CSS here if not using CDN
+// import 'katex/dist/katex.min.css';
 
 export default function Chat() {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     api: "https://wrikpjquiollucsvgure.supabase.co/functions/v1/generate-message",
   });
+
   return (
     <div className="flex flex-col w-full bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen rounded-lg shadow-lg">
       <div className="px-4 md:px-6 py-3 md:py-4 border-b border-gray-200">
@@ -26,9 +34,10 @@ export default function Chat() {
             className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[80%] sm:max-w-[70%] md:max-w-[60%] whitespace-pre-wrap p-3 md:p-4 rounded-lg shadow-sm ${
+              // Add prose class for better markdown styling defaults if using Tailwind typography
+              className={`prose prose-sm md:prose-base max-w-[80%] sm:max-w-[70%] md:max-w-[60%] whitespace-pre-wrap p-3 md:p-4 rounded-lg shadow-sm ${
                 message.role === "user"
-                  ? "bg-blue-600 text-white"
+                  ? "bg-blue-600 text-white prose-invert" // prose-invert for dark backgrounds
                   : "bg-white text-gray-800 border border-gray-200"
               }`}
             >
@@ -36,13 +45,20 @@ export default function Chat() {
                 switch (part.type) {
                   case "text":
                     return (
-                      <div
+                      // Replace the simple div with ReactMarkdown
+                      <ReactMarkdown
                         key={`${message.id}-${i}`}
-                        className="text-sm md:text-base"
+                        remarkPlugins={[remarkMath]} // Enable math parsing
+                        rehypePlugins={[rehypeKatex]} // Enable math rendering
+                        // Apply base text styles here if needed, or rely on prose/CSS
+                        // className="text-sm md:text-base"
                       >
                         {part.text}
-                      </div>
+                      </ReactMarkdown>
                     );
+                  // Handle other part types if they exist
+                  default:
+                    return null; // Or render something else
                 }
               })}
             </div>
